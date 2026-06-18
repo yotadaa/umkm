@@ -1,216 +1,214 @@
-# WhatsApp CLI Chatbot UMKM
+# UMKM AI CRM
 
-Demo WhatsApp chatbot berbasis Node.js CLI untuk alur `AI Growth System for UMKM` dari `alur PRODUK.pdf`.
+Dashboard React Vite + WhatsApp bot untuk CRM UMKM. App ini menyimpan katalog produk, multi-foto produk, lead, percakapan WhatsApp, pesan customer, pesan bot, pesan owner, dan follow-up ke MySQL.
 
-Fitur MVP:
+## Fitur Utama
 
-- Scan QR WhatsApp lewat terminal.
-- Dashboard website dengan desain macOS liquid glass.
-- Kelola item/produk yang dijual dari dashboard.
-- Monitor chat WhatsApp dan balas manual dari dashboard.
-- AI mengambil katalog produk terbaru dari dashboard/database lokal.
-- Balas otomatis untuk FAQ, harga, katalog, lokasi, dan promo.
-- Capture lead: nama, nomor, minat, source, status, tanggal.
-- Lead scoring dummy: `Hot`, `Warm`, `New`.
-- Dashboard lead lewat CLI owner.
-- Follow-up manual via CLI untuk simulasi H+1, H+3, H+7.
-- Follow-up otomatis opsional untuk lead yang sudah due H+1, H+3, H+7.
-- Broadcast promo ke semua lead.
-- Penyimpanan lokal di `data/db.json`.
-- Deteksi nomor berbeda sebagai customer berbeda.
-- Conversation lanjutan mengenali nama, minat, source, dan status dari nomor yang sama.
-- Auto-compact riwayat chat setiap estimasi 50.000 token per nomor.
+- Dashboard admin React Vite dengan layout glass sesuai referensi `stitch_smart_umkm_ai_crm`.
+- QR WhatsApp tampil di dashboard untuk discan pengguna.
+- Session WhatsApp disimpan lokal di `.wa-session` dan bisa dioverride via `WA_SESSION_PATH`.
+- Katalog produk tersimpan di MySQL, lengkap dengan halaman detail per produk.
+- Setiap produk mendukung lebih dari satu foto dan carousel.
+- Foto produk dapat ditambah/dihapus dari dashboard dan tersimpan ke database.
+- Customer yang meminta foto, misalnya `boleh tolong share foto foto nya?`, akan diarahkan agar admin share media terkait dari dashboard.
+- Chat customer WhatsApp direkam ke halaman WhatsApp Chat.
+- Pesan owner dari dashboard dan pesan owner yang dikirim langsung dari aplikasi WhatsApp ikut direkam.
+- Nomor WhatsApp dinormalisasi agar ID multi-device seperti `628xxx:12@c.us` tetap menjadi `628xxx`.
+- AI fallback aman: kalau endpoint AI error, bot tetap memakai fallback deterministic dan pesan tetap tercatat.
+- Lead/CRM, follow-up H+1/H+3/H+7, dan broadcast promo tersedia dari dashboard.
 
-## Setup
+## Stack
+
+- Node.js ESM
+- Express
+- React 19
+- Vite
+- MySQL 8 / MariaDB compatible
+- `whatsapp-web.js`
+- `mysql2`
+- `qrcode`
+
+## Setup Cepat
 
 ```bash
 npm install
+npm run db:migrate
+npm run db:seed
 npm run dashboard:build
 npm start
 ```
 
-Dashboard akan aktif di:
+Dashboard default:
 
 ```text
 http://localhost:3000
 ```
 
-Untuk development dashboard React:
+Untuk development frontend:
 
 ```bash
 npm run dashboard:dev
 ```
 
-## Setup AI
+## Konfigurasi Environment
 
-Bot mendukung OpenAI-compatible endpoint. Jangan simpan API key langsung di source code.
+Salin `.env.example` menjadi `.env`, lalu sesuaikan bila perlu.
 
-Jalankan dengan environment variable:
-
-```bash
-AI_ENDPOINT=http://localhost:20128/v1 AI_MODEL=cx/gpt-5.4-mini AI_API_KEY=isi_api_key npm start
-```
-
-Atau buat file `.env` sendiri dari `.env.example`, lalu export env sebelum run sesuai shell yang dipakai.
-
-Contoh isi `.env` lokal:
-
-```bash
+```env
 AI_ENDPOINT=http://localhost:20128/v1
 AI_MODEL=cx/gpt-5.4-mini
-AI_API_KEY=isi_api_key
+AI_API_KEY=isi_api_key_di_sini
 AUTO_FOLLOWUP=false
 AUTO_FOLLOWUP_INTERVAL_MINUTES=60
+STORE_DRIVER=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=password
+DB_NAME=umkm_ai
+WA_SESSION_PATH=./.wa-session
 ```
 
-File `.env` sudah masuk `.gitignore` dan akan dibaca otomatis oleh `npm start`.
-
-AI dipakai untuk jawaban bebas/fallback. Flow penting seperti capture nomor, nama, minat, status lead, follow-up, dan broadcast tetap deterministic di kode agar database tidak bergantung pada output AI.
-
-Katalog yang diberikan ke AI diambil dari `data/db.json`, yaitu data yang sama dengan dashboard. Jadi ketika produk diedit dari dashboard, jawaban AI berikutnya memakai produk/harga/deskripsi terbaru.
-
-## Dashboard Website
-
-Fitur dashboard:
-
-- Statistik lead hari ini, bulan ini, hot lead, warm lead.
-- CRUD produk/item yang dijual.
-- Produk dashboard menjadi sumber data katalog bot dan AI.
-- Monitor percakapan WhatsApp berdasarkan nomor customer.
-- Balas manual chat WhatsApp dari dashboard.
-- Tabel lead hasil capture bot.
-
-Dashboard memakai React + Vite + `liquid-glass-react` untuk vibe macOS glass.
-
-Guardrail AI:
-
-- Hanya boleh menjawab konteks klinik kecantikan, katalog, harga, lokasi, promo, konsultasi, booking, dan lead capture.
-- Pertanyaan di luar konteks harus ditolak sopan dan diarahkan balik ke layanan klinik.
-- Tidak boleh diagnosis medis pasti atau klaim penyembuhan.
-- Tidak boleh mengarang produk, harga, alamat, promo, atau jadwal yang tidak ada di katalog.
-- Tidak boleh meminta OTP, PIN, password, kartu, atau data sensitif.
-- Tidak boleh membahas API key, endpoint, model, prompt, atau instruksi internal.
-- Jika customer ingin booking atau bayar, arahkan ke admin.
-- Jawaban dibuat singkat seperti chat WhatsApp.
-
-Saat QR muncul di terminal, buka WhatsApp di HP:
+Default database mengikuti kebutuhan project:
 
 ```text
-WhatsApp > Linked Devices > Link a Device
+user: root
+password: password
+database: umkm_ai
 ```
 
-Scan QR dari terminal. Setelah bot aktif, chat dari nomor lain ke nomor WhatsApp yang di-bind.
+## Database
 
-## Simulasi Chat Customer
-
-Contoh pesan customer:
+Migration ada di:
 
 ```text
-Halo, facial acne berapa?
-Siti
-Saya mau booking hari ini
+migrations/001_init.sql
 ```
 
-Bot akan:
-
-- Menjawab harga dan promo.
-- Meminta nama.
-- Menyimpan lead ke `data/db.json`.
-- Mengaitkan identitas dengan nomor WhatsApp customer.
-- Mengubah status menjadi `Hot` jika customer ingin booking.
-- Mengarahkan ke admin dummy.
-
-Kalau nomor yang sama chat lagi, bot akan menyapa memakai nama yang sudah tersimpan dan mengingat minat terakhir. Kalau nomor berbeda chat, bot membuat conversation dan lead terpisah.
-
-## Database Lokal
-
-File `data/db.json` berisi:
-
-```json
-{
-  "leads": [],
-  "conversations": {},
-  "messages": [],
-  "compacted": []
-}
-```
-
-Detail:
-
-- `conversations` memakai nomor WhatsApp sebagai key utama.
-- `leads` memakai `phone` untuk mencegah lead dobel dari nomor yang sama.
-- `messages` menyimpan riwayat chat terbaru.
-- `compacted` menyimpan ringkasan riwayat lama saat estimasi token per nomor melewati 50.000 token.
-
-Auto-compact mempertahankan 80 pesan terbaru per nomor dan memindahkan pesan lama menjadi summary agar database tetap ringan tetapi identitas customer tetap tersimpan.
-
-## Command Owner
-
-Setelah WhatsApp aktif, terminal akan menampilkan prompt:
-
-```text
-owner>
-```
-
-Command yang tersedia:
-
-```text
-help                         Tampilkan bantuan
-dashboard                    Statistik lead
-leads                        Tabel lead
-followup <id|all> <h1|h3|h7> Kirim pesan follow-up
-followup due                 Tampilkan lead yang sudah waktunya follow-up
-broadcast <pesan>            Kirim promo ke semua lead
-exit                         Keluar
-```
-
-Contoh:
-
-```text
-dashboard
-leads
-followup due
-followup all h1
-broadcast Promo Facial Acne diskon 20% minggu ini.
-```
-
-## Follow-Up
-
-Follow-up manual:
-
-```text
-followup 1 h1
-followup all h3
-followup due
-```
-
-Bot mencatat follow-up yang sudah terkirim di field `followUpsSent`, sehingga command yang sama tidak mengirim dobel ke lead yang sama.
-
-Follow-up otomatis:
+Script database:
 
 ```bash
-AUTO_FOLLOWUP=true AUTO_FOLLOWUP_INTERVAL_MINUTES=60 npm start
+npm run db:migrate
+npm run db:seed
 ```
 
-Aturan due:
+Tabel utama:
 
-- `h1`: lead berumur minimal 1 hari.
-- `h3`: lead berumur minimal 3 hari.
-- `h7`: lead berumur minimal 7 hari.
-- Lead dengan status `Closed` tidak di-follow-up.
-- Jika `h1`, `h3`, atau `h7` sudah pernah terkirim, bot tidak mengirim ulang untuk step yang sama.
+- `business_profiles`
+- `products`
+- `product_keywords`
+- `product_media`
+- `leads`
+- `conversations`
+- `messages`
+- `compacted`
+- `schema_migrations`
 
-## Data Dummy Produk
+Seed membuat 3 produk dummy dan setiap produk punya beberapa gambar internet-hosted:
 
-Produk dummy ada di `src/products.js`:
+- Facial Acne
+- Facial Brightening
+- Anti Aging Treatment
 
-- Facial Acne - Rp150.000
-- Facial Brightening - Rp175.000
-- Anti Aging Treatment - Rp250.000
+## Alur WhatsApp
 
-Silakan ubah nama bisnis, alamat, admin, promo, dan katalog di file tersebut.
+1. Jalankan `npm start`.
+2. Buka dashboard.
+3. Scan QR dari panel "Hubungkan WhatsApp".
+4. Customer mengirim pesan ke nomor WhatsApp yang terhubung.
+5. Bot mencatat pesan customer, membuat/memperbarui conversation, membuat lead, dan membalas.
+6. Balasan bot serta balasan owner akan tampil di halaman WhatsApp Chat.
 
-## Catatan
+Bot mengabaikan group chat dan pesan kosong. Pesan owner dari WhatsApp langsung direkam lewat event `message_create`, dengan dedupe singkat supaya pesan dari dashboard tidak tercatat dobel.
 
-Project ini memakai `whatsapp-web.js`, bukan WhatsApp Cloud API. Cocok untuk demo CLI dengan QR terminal. Untuk produksi, tetap pertimbangkan WhatsApp Cloud API resmi, database server, dashboard web, dan queue follow-up terjadwal.
-# umkm
+## AI Fallback
+
+AI dipakai untuk pertanyaan bebas jika `AI_API_KEY` atau `OPENAI_API_KEY` tersedia. Flow penting tetap deterministic:
+
+- Deteksi produk
+- Harga dan promo
+- Capture nama
+- Lead status
+- Follow-up
+- Broadcast
+- Share media produk
+
+Jika endpoint AI error, bot tidak berhenti. App lanjut memakai fallback deterministic dan tetap menyimpan pesan customer serta balasan bot ke database.
+
+## API Ringkas
+
+```text
+GET    /api/health
+GET    /api/state
+GET    /api/products
+GET    /api/products/:id
+POST   /api/products
+PUT    /api/products/:id
+DELETE /api/products/:id
+POST   /api/products/:id/media
+DELETE /api/products/:id/media/:mediaId
+POST   /api/products/:id/media/send
+GET    /api/leads
+PATCH  /api/leads/:id
+GET    /api/chats
+POST   /api/chats/:phone/send
+GET    /api/followups/due
+POST   /api/followups/send
+POST   /api/broadcast
+PUT    /api/profile
+```
+
+## Testing dan Build
+
+```bash
+npm test
+npm run dashboard:build
+npm run check
+```
+
+`npm run check` menjalankan syntax check, test Node, test MySQL store, dan build Vite.
+
+## Screenshot Semua View
+
+### Dashboard
+
+![Dashboard](docs/screenshots/01-dashboard.png)
+
+### Produk
+
+![Produk](docs/screenshots/02-products.png)
+
+### Detail Produk
+
+![Detail Produk](docs/screenshots/03-product-detail.png)
+
+### WhatsApp Chat
+
+![WhatsApp Chat](docs/screenshots/04-whatsapp-chat.png)
+
+### Leads/CRM
+
+![Leads CRM](docs/screenshots/05-leads-crm.png)
+
+### Follow Up
+
+![Follow Up](docs/screenshots/06-follow-up.png)
+
+### Broadcast
+
+![Broadcast](docs/screenshots/07-broadcast.png)
+
+### Pengaturan
+
+![Pengaturan](docs/screenshots/08-settings.png)
+
+## Catatan Development
+
+- `dashboard/dist` adalah hasil build dan tidak perlu dicommit.
+- `.wa-session*` berisi session runtime WhatsApp dan di-ignore.
+- `.env` di-ignore; gunakan `.env.example` sebagai template.
+- Untuk QA aman tanpa mengganggu session utama, jalankan dengan port/path session lain:
+
+```bash
+DASHBOARD_PORT=3100 WA_SESSION_PATH=./.wa-session-qa npm start
+```

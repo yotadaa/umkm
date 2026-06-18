@@ -14,7 +14,27 @@ export const defaultProducts = [
     price: 150000,
     keywords: ['facial acne', 'acne', 'jerawat', 'facial jerawat'],
     description: 'Perawatan untuk kulit berjerawat, komedo, dan minyak berlebih.',
-    promo: 'Diskon 20% minggu ini menjadi Rp120.000.'
+    promo: 'Diskon 20% minggu ini menjadi Rp120.000.',
+    media: [
+      {
+        id: 'facial-acne-treatment',
+        label: 'Treatment facial acne',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=1200&q=80'
+      },
+      {
+        id: 'facial-acne-room',
+        label: 'Ruang konsultasi kulit',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=1200&q=80'
+      },
+      {
+        id: 'facial-acne-aftercare',
+        label: 'Produk after care',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=1200&q=80'
+      }
+    ]
   },
   {
     id: 'brightening',
@@ -22,7 +42,27 @@ export const defaultProducts = [
     price: 175000,
     keywords: ['brightening', 'cerah', 'mencerahkan', 'kusam'],
     description: 'Perawatan untuk membantu kulit terlihat lebih cerah dan segar.',
-    promo: 'Gratis konsultasi kulit sebelum treatment.'
+    promo: 'Gratis konsultasi kulit sebelum treatment.',
+    media: [
+      {
+        id: 'brightening-serum',
+        label: 'Serum brightening',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=1200&q=80'
+      },
+      {
+        id: 'brightening-treatment',
+        label: 'Perawatan wajah cerah',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1522338242992-e1a54906a8da?auto=format&fit=crop&w=1200&q=80'
+      },
+      {
+        id: 'brightening-kit',
+        label: 'Glow care kit',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=1200&q=80'
+      }
+    ]
   },
   {
     id: 'anti-aging',
@@ -30,7 +70,27 @@ export const defaultProducts = [
     price: 250000,
     keywords: ['anti aging', 'aging', 'kerut', 'flek', 'penuaan'],
     description: 'Perawatan untuk membantu menyamarkan tanda penuaan dan flek ringan.',
-    promo: 'Paket 3x treatment hemat Rp100.000.'
+    promo: 'Paket 3x treatment hemat Rp100.000.',
+    media: [
+      {
+        id: 'anti-aging-serum',
+        label: 'Serum anti aging',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1200&q=80'
+      },
+      {
+        id: 'anti-aging-skincare',
+        label: 'Paket skincare',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1200&q=80'
+      },
+      {
+        id: 'anti-aging-cream',
+        label: 'Cream perawatan malam',
+        type: 'image/jpeg',
+        url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1200&q=80'
+      }
+    ]
   }
 ];
 

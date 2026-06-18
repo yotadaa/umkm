@@ -83,6 +83,10 @@ export class Store {
     return this.data.products;
   }
 
+  getProduct(id) {
+    return this.data.products.find((product) => product.id === id) || null;
+  }
+
   getBusinessProfile() {
     return this.data.businessProfile;
   }
@@ -119,6 +123,32 @@ export class Store {
     return this.data.products.length < before;
   }
 
+  async addProductMedia(productId, input) {
+    const product = this.getProduct(productId);
+    if (!product) return null;
+
+    const media = normalizeMedia([{
+      ...input,
+      id: input.id || uniqueMediaId(product.media || [], input.label)
+    }])[0];
+
+    if (!media) return null;
+
+    product.media = [...(product.media || []), media];
+    await this.save();
+    return media;
+  }
+
+  async deleteProductMedia(productId, mediaId) {
+    const product = this.getProduct(productId);
+    if (!product) return false;
+
+    const before = product.media?.length || 0;
+    product.media = (product.media || []).filter((media) => media.id !== mediaId);
+    await this.save();
+    return product.media.length < before;
+  }
+
   async upsertLead({ phone, name, interest, source, status }) {
     let lead = this.findLeadByPhone(phone);
 
@@ -150,19 +180,58 @@ export class Store {
     return lead;
   }
 
-  async addMessage({ phone, from, body }) {
-    this.getConversation(phone);
+  async updateLead(id, patch) {
+    const lead = this.data.leads.find((item) => String(item.id) === String(id));
+    if (!lead) return null;
 
-    this.data.messages.push({
-      phone,
-      from,
-      body,
-      created_at: new Date().toISOString()
+    const nextStatus = patch.status ? String(patch.status) : lead.status;
+    const nextNotes = Array.isArray(patch.notes) ? patch.notes : lead.notes;
+
+    Object.assign(lead, {
+      status: nextStatus,
+      notes: nextNotes,
+      updated_at: new Date().toISOString()
     });
 
-    this.compactIfNeeded(phone);
+    await this.save();
+    return lead;
+  }
+
+  hasRecentMessage({ phone, from, body, withinMs = 15000 }) {
+    const now = Date.now();
+    return this.data.messages.some((message) => {
+      const createdAt = new Date(message.created_at).getTime();
+      return message.phone === phone
+        && message.from === from
+        && message.body === body
+        && Number.isFinite(createdAt)
+        && now - createdAt <= withinMs;
+    });
+  }
+
+  async addMessage({ phone, from, body, created_at, dedupeWindowMs = 0 }) {
+    const normalizedPhone = String(phone || '').trim();
+    const normalizedBody = String(body || '');
+
+    if (dedupeWindowMs > 0 && this.hasRecentMessage({ phone: normalizedPhone, from, body: normalizedBody, withinMs: dedupeWindowMs })) {
+      return null;
+    }
+
+    const message = {
+      phone: normalizedPhone,
+      from,
+      body: normalizedBody,
+      created_at: created_at || new Date().toISOString()
+    };
+
+    this.getConversation(normalizedPhone);
+
+    this.data.messages.push(message);
+
+    this.compactIfNeeded(normalizedPhone);
 
     await this.save();
+    return message;
   }
 
   compactIfNeeded(phone) {
@@ -236,14 +305,51 @@ function lastCustomerMessage(messages) {
 }
 
 function normalizeProduct(product) {
+  const seeded = defaultProducts.find((item) => item.id === product.id || item.name === product.name);
   return {
     id: product.id || slugifyProductName(product.name),
     name: String(product.name || 'Produk Tanpa Nama').trim(),
     price: Number(product.price || 0),
     keywords: ensureArray(product.keywords),
     description: String(product.description || '').trim(),
-    promo: String(product.promo || '').trim()
+    promo: String(product.promo || '').trim(),
+    media: normalizeMedia(product.media === undefined ? seeded?.media : product.media)
   };
+}
+
+function normalizeMedia(media) {
+  if (!Array.isArray(media)) return [];
+  return media
+    .map((item, index) => ({
+      id: String(item?.id || `media-${index + 1}`),
+      label: String(item?.label || `Foto ${index + 1}`),
+      type: String(item?.type || inferMediaType(item?.url)),
+      url: String(item?.url || '').trim()
+    }))
+    .filter((item) => item.url);
+}
+
+function inferMediaType(url) {
+  const value = String(url || '').toLowerCase();
+  const dataMatch = value.match(/^data:([^;]+);/);
+  if (dataMatch) return dataMatch[1];
+  if (value.includes('.webp')) return 'image/webp';
+  if (value.includes('.png')) return 'image/png';
+  if (value.includes('.gif')) return 'image/gif';
+  return 'image/jpeg';
+}
+
+function uniqueMediaId(mediaItems, label) {
+  const base = slugifyProductName(label || 'foto-produk');
+  let candidate = base;
+  let counter = 2;
+
+  while (mediaItems.some((media) => media.id === candidate)) {
+    candidate = `${base}-${counter}`;
+    counter += 1;
+  }
+
+  return candidate;
 }
 
 function uniqueProductId(products, name) {

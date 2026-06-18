@@ -4,13 +4,20 @@ import { generateAiReply, isAiEnabled } from './ai.js';
 const bookingKeywords = ['booking', 'pesan', 'jadwal', 'hari ini', 'besok', 'mau treatment'];
 const browsingKeywords = ['lihat-lihat', 'pikir dulu', 'nanti dulu', 'tanya dulu', 'konsultasi'];
 const sourceKeywords = ['instagram', 'facebook', 'tiktok', 'google', 'maps', 'website'];
+const mediaKeywords = ['foto', 'photo', 'gambar', 'image', 'pic', 'share foto', 'kirim foto'];
 
 export function normalizePhone(waId) {
-  return waId.replace('@c.us', '').replace('@s.whatsapp.net', '');
+  const raw = String(waId || '').trim();
+  const withoutProtocol = raw.replace(/^whatsapp:/i, '');
+  const localPart = withoutProtocol.split('@')[0].split(':')[0];
+  const digits = localPart.replace(/\D/g, '');
+
+  if (digits.startsWith('0')) return `62${digits.slice(1)}`;
+  return digits || localPart;
 }
 
-export async function handleIncomingMessage({ store, message }) {
-  const phone = normalizePhone(message.from);
+export async function handleIncomingMessage({ store, message, phone: resolvedPhone }) {
+  const phone = normalizePhone(resolvedPhone || message.from);
   const text = String(message.body || '').trim();
 
   if (!text) return null;
@@ -50,6 +57,12 @@ async function buildResponse({ store, phone, text, conversation }) {
       status
     });
 
+    if (isMediaRequest(lowerText)) {
+      return product.media?.length
+        ? `Bisa Kak. Saya siapkan ${product.media.length} foto ${product.name}. Admin bisa share foto-fotonya dari dashboard ya.`
+        : `Bisa Kak, untuk ${product.name} saya bantu minta admin kirim foto terbaru ya.`;
+    }
+
     return [
       `Halo Kak, ${product.name} harganya ${formatCurrency(product.price)}.`,
       product.description,
@@ -87,6 +100,17 @@ async function buildResponse({ store, phone, text, conversation }) {
   if (containsAny(lowerText, ['katalog', 'produk', 'treatment', 'layanan', 'paket'])) {
     await store.updateConversation(phone, { source, status });
     return `Ini katalog treatment kami ya Kak:\n\n${productCatalogText(products)}\n\nKakak tertarik yang mana?`;
+  }
+
+  if (isMediaRequest(lowerText)) {
+    const interestedProduct = products.find((item) => item.name === conversation.interest);
+    if (interestedProduct?.media?.length) {
+      await store.updateConversation(phone, { source, status });
+      return `Bisa Kak. Saya siapkan ${interestedProduct.media.length} foto ${interestedProduct.name}. Admin bisa share foto-fotonya dari dashboard ya.`;
+    }
+
+    await store.updateConversation(phone, { source, status });
+    return 'Bisa Kak. Boleh sebutkan produk atau treatment yang ingin dilihat fotonya?';
   }
 
   if (containsAny(lowerText, ['harga', 'price', 'biaya', 'berapa'])) {
@@ -159,7 +183,7 @@ async function buildResponse({ store, phone, text, conversation }) {
 
   if (isAiEnabled()) {
     const latestConversation = store.getConversation(phone);
-    const aiReply = await generateAiReply({ text, conversation: latestConversation, store });
+    const aiReply = await generateAiReply({ text, conversation: latestConversation, store }).catch(() => null);
 
     if (aiReply) return aiReply;
   }
@@ -212,6 +236,10 @@ function isGreeting(text) {
 
 function containsAny(text, keywords) {
   return keywords.some((keyword) => text.includes(keyword));
+}
+
+function isMediaRequest(text) {
+  return containsAny(text, mediaKeywords);
 }
 
 function looksLikeName(text) {
