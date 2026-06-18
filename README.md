@@ -213,3 +213,4 @@ Silakan ubah nama bisnis, alamat, admin, promo, dan katalog di file tersebut.
 ## Catatan
 
 Project ini memakai `whatsapp-web.js`, bukan WhatsApp Cloud API. Cocok untuk demo CLI dengan QR terminal. Untuk produksi, tetap pertimbangkan WhatsApp Cloud API resmi, database server, dashboard web, dan queue follow-up terjadwal.
+# umkm
