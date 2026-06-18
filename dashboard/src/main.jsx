@@ -96,7 +96,7 @@ function App() {
       </section>
 
       <section className="workspace">
-        <LiquidPanel className="products-panel">
+        <GlassPanel className="products-panel">
           <div className="panel-heading">
             <div>
               <p className="eyebrow">Katalog AI</p>
@@ -133,9 +133,9 @@ function App() {
               </article>
             ))}
           </div>
-        </LiquidPanel>
+        </GlassPanel>
 
-        <LiquidPanel className="chat-panel">
+        <GlassPanel className="chat-panel">
           <div className="panel-heading">
             <div>
               <p className="eyebrow">WhatsApp Monitor</p>
@@ -174,10 +174,10 @@ function App() {
               ) : <p className="empty">Belum ada chat WhatsApp.</p>}
             </section>
           </div>
-        </LiquidPanel>
+        </GlassPanel>
       </section>
 
-      <LiquidPanel>
+      <GlassPanel>
         <div className="panel-heading">
           <div>
             <p className="eyebrow">CRM</p>
@@ -189,17 +189,21 @@ function App() {
             <span>{lead.name}</span><span>{lead.phone}</span><span>{lead.interest}</span><span className={`status ${String(lead.status).toLowerCase()}`}>{lead.status}</span><span>{new Date(lead.created_at).toLocaleDateString('id-ID')}</span>
           </div>)}
         </div>
-      </LiquidPanel>
+      </GlassPanel>
     </main>
   );
 }
 
-function LiquidPanel({ children, className = '' }) {
-  return <LiquidGlass blurAmount={0.08} saturation={145} aberrationIntensity={1.4} elasticity={0.18} cornerRadius={28} className={`liquid-panel ${className}`}>{children}</LiquidGlass>;
+function GlassPanel({ children, className = '' }) {
+  return <div className={`glass-panel ${className}`}>{children}</div>;
 }
 
 function Stat({ label, value, accent = '' }) {
-  return <LiquidPanel className={`stat ${accent}`}><p>{label}</p><strong>{value}</strong></LiquidPanel>;
+  return <div className={`stat-wrap ${accent}`}>
+    <LiquidGlass blurAmount={0.055} saturation={150} aberrationIntensity={1.2} elasticity={0.2} cornerRadius={24} padding="0">
+      <div className="stat-content"><p>{label}</p><strong>{value}</strong></div>
+    </LiquidGlass>
+  </div>;
 }
 
 function buildStats(leads) {
