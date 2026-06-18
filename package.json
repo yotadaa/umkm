@@ -1,0 +1,26 @@
+{
+  "name": "chatbot-wa-umkm",
+  "version": "0.1.0",
+  "description": "WhatsApp CLI chatbot demo untuk AI Growth System UMKM",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "dashboard:dev": "vite --host 0.0.0.0 dashboard",
+    "dashboard:build": "vite build dashboard",
+    "check": "node --check src/index.js && node --check src/chatbot.js && node --check src/store.js && node --check src/ai.js && node --check src/followup.js && node --check src/owner-cli.js && node --check src/dashboard-server.js && npm run dashboard:build"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "express": "^5.2.1",
+    "liquid-glass-react": "^1.1.1",
+    "qrcode-terminal": "^0.12.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "vite": "^8.0.16",
+    "whatsapp-web.js": "^1.26.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
