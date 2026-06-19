@@ -43,3 +43,33 @@ test('records owner messages created directly in WhatsApp with normalized custom
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('skips outgoing bot echoes so dashboard chat does not duplicate AI bubbles as admin', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'umkm-recorder-'));
+  const store = new Store(join(dir, 'db.json'));
+
+  try {
+    await store.load();
+    await store.addMessage({
+      phone: '628111222333',
+      from: 'bot',
+      body: 'Ini katalog treatment kami ya Kak.'
+    });
+
+    const recorded = await recordOutgoingWhatsAppMessage({
+      store,
+      message: {
+        fromMe: true,
+        from: '628000000001@c.us',
+        to: '628111222333@c.us',
+        body: 'Ini katalog treatment kami ya Kak.'
+      }
+    });
+
+    assert.equal(recorded.duplicate, true);
+    assert.equal(recorded.duplicateOf, 'bot');
+    assert.deepEqual(store.data.messages.map((message) => message.from), ['bot']);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

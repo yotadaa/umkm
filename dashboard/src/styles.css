@@ -288,6 +288,9 @@ p {
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
 }
 
 .wa-pill span {
@@ -337,13 +340,17 @@ p {
   border: 1px solid rgba(255, 255, 255, 0.7);
   color: #2a49df;
   background: rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
 }
 
 .icon-btn {
   width: 40px;
   height: 40px;
   color: #444655;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
 }
 
 .icon-btn:hover,
@@ -364,6 +371,8 @@ p {
   border: 2px solid #fff;
   background: linear-gradient(135deg, #dee0ff, #e9ddff);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(18px) saturate(155%);
+  -webkit-backdrop-filter: blur(18px) saturate(155%);
 }
 
 .primary-btn,
@@ -372,6 +381,8 @@ p {
   color: #fff;
   background: linear-gradient(135deg, #4f6bff 0%, #8b5cf6 100%);
   box-shadow: 0 14px 30px rgba(79, 107, 255, 0.22);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
 }
 
 .primary-btn.full {
@@ -578,9 +589,12 @@ p {
   gap: 12px;
   padding: 13px 15px;
   border-radius: 16px;
-  background: rgba(73, 101, 249, 0.1);
+  background: rgba(240, 245, 255, 0.72);
   color: #2a49df;
   border: 1px solid rgba(73, 101, 249, 0.18);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(24px) saturate(165%);
+  -webkit-backdrop-filter: blur(24px) saturate(165%);
   font-weight: 700;
 }
 
@@ -706,59 +720,34 @@ p {
 
 .lead-chart {
   position: relative;
+  width: 100%;
+  min-width: 0;
   height: 270px;
-  padding: 18px 12px 26px;
+  padding: 12px 4px 0;
+  overflow: hidden;
 }
 
-.lead-chart svg {
-  position: absolute;
-  inset: 18px 12px 42px;
-  width: calc(100% - 24px);
-  height: calc(100% - 60px);
-}
-
-.lead-chart path {
-  fill: rgba(79, 107, 255, 0.16);
-}
-
-.lead-chart polyline {
-  fill: none;
-  stroke: #4f6bff;
-  stroke-width: 2.2;
-}
-
-.bar-row {
-  position: absolute;
-  inset: 34px 18px 16px;
+.chart-tooltip {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  align-items: end;
-  gap: 18px;
+  gap: 2px;
+  padding: 9px 11px;
+  border-radius: 12px;
+  color: #0b1c30;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
 }
 
-.bar-row span {
-  height: 100%;
-  display: grid;
-  align-items: end;
-  justify-items: center;
-  gap: 8px;
+.chart-tooltip strong {
+  font-size: 12px;
 }
 
-.bar-row i {
-  width: 12px;
-  border-radius: 999px 999px 4px 4px;
-  background: rgba(42, 73, 223, 0.18);
-}
-
-.bar-row span:nth-child(5) i {
-  background: #4f6bff;
-}
-
-.bar-row em {
-  color: #64748b;
-  font-size: 11px;
-  font-style: normal;
-  font-weight: 700;
+.chart-tooltip span {
+  color: #4f6bff;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .list-stack {
@@ -1151,6 +1140,8 @@ p {
   background: rgba(255, 255, 255, 0.74);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
   transform: translateY(-50%);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
 }
 
 .carousel-nav.prev {
@@ -1172,6 +1163,8 @@ p {
   background: rgba(11, 28, 48, 0.56);
   font-size: 12px;
   font-weight: 800;
+  backdrop-filter: blur(14px) saturate(145%);
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
 }
 
 .carousel-thumbs {
@@ -1979,14 +1972,22 @@ tr:hover td {
 
   .sidebar.open {
     display: flex;
+    z-index: 80;
+    width: min(286px, 82vw);
+    background: rgba(248, 250, 255, 0.8);
+    box-shadow: 26px 0 70px rgba(15, 23, 42, 0.18);
+    backdrop-filter: blur(34px) saturate(170%);
+    -webkit-backdrop-filter: blur(34px) saturate(170%);
   }
 
   .nav-backdrop {
     display: block;
     position: fixed;
     inset: 0;
-    z-index: 45;
-    background: rgba(15, 23, 42, 0.24);
+    z-index: 70;
+    background: rgba(15, 23, 42, 0.28);
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
   }
 
   .main-shell {
@@ -2051,7 +2052,7 @@ tr:hover td {
     padding: 8px;
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.72);
-    background: rgba(255, 255, 255, 0.68);
+    background: rgba(255, 255, 255, 0.74);
     box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.08);
     backdrop-filter: blur(36px) saturate(165%);
     -webkit-backdrop-filter: blur(36px) saturate(165%);

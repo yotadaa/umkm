@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 import './styles.css';
 
 const emptyProduct = { name: '', price: '', keywords: '', description: '', promo: '' };
@@ -63,13 +64,14 @@ function App() {
   }, [state?.businessProfile, broadcastMessage]);
 
   const conversations = state?.conversations || {};
+  const displayMessages = useMemo(() => dedupeMessagesForDisplay(state?.messages || []), [state?.messages]);
   const chatPhones = useMemo(() => sortPhonesByConversation(conversations), [conversations]);
   const activePhone = selectedPhone || chatPhones[0] || null;
   const activeConversation = activePhone ? conversations[activePhone] : null;
   const activeLead = activePhone ? (state?.leads || []).find((lead) => lead.phone === activePhone) : null;
   const activeMessages = useMemo(
-    () => (state?.messages || []).filter((message) => message.phone === activePhone),
-    [state?.messages, activePhone]
+    () => displayMessages.filter((message) => message.phone === activePhone),
+    [displayMessages, activePhone]
   );
   const stats = useMemo(() => buildStats(state?.leads || [], conversations), [state?.leads, conversations]);
   const dueItems = useMemo(() => buildDueFollowUps(state?.leads || []), [state?.leads]);
@@ -298,7 +300,7 @@ function App() {
               businessName={state.businessProfile.name}
               stats={stats}
               leads={state.leads}
-              messages={state.messages}
+              messages={displayMessages}
               products={state.products}
               dueItems={dueItems}
               whatsapp={state.whatsapp}
@@ -1244,22 +1246,56 @@ function MessagePreview({ message }) {
 }
 
 function LeadChart({ leads }) {
+  const chartRef = useRef(null);
+  const [chartWidth, setChartWidth] = useState(760);
   const data = buildLeadChart(leads);
-  const max = Math.max(...data.map((item) => item.count), 1);
+
+  useEffect(() => {
+    const element = chartRef.current;
+    if (!element) return undefined;
+
+    const updateWidth = () => {
+      setChartWidth(Math.max(Math.floor(element.clientWidth || 0), 320));
+    };
+
+    updateWidth();
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateWidth);
+      return () => window.removeEventListener('resize', updateWidth);
+    }
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="lead-chart">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <path d={areaPath(data, max)} />
-        <polyline points={linePoints(data, max)} />
-      </svg>
-      <div className="bar-row">
-        {data.map((item) => (
-          <span key={item.label}>
-            <i style={{ height: `${Math.max((item.count / max) * 88, 12)}%` }} />
-            <em>{item.label}</em>
-          </span>
-        ))}
-      </div>
+    <div className="lead-chart" ref={chartRef}>
+      <AreaChart width={chartWidth} height={270} data={data} margin={{ top: 18, right: 16, left: -18, bottom: 4 }}>
+        <defs>
+          <linearGradient id="leadTrendFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#4f6bff" stopOpacity={0.26} />
+            <stop offset="95%" stopColor="#4f6bff" stopOpacity={0.04} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke="rgba(100,116,139,0.14)" vertical={false} />
+        <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#4d6a8d', fontSize: 12, fontWeight: 700 }} />
+        <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#8da0bb', fontSize: 11 }} width={28} />
+        <Tooltip content={<LeadChartTooltip />} cursor={{ stroke: '#8b5cf6', strokeWidth: 1, strokeDasharray: '4 4' }} />
+        <Area type="monotone" dataKey="count" stroke="#4f6bff" strokeWidth={4} fill="url(#leadTrendFill)" dot={{ r: 4, strokeWidth: 3, fill: '#fff', stroke: '#4f6bff' }} activeDot={{ r: 6 }} />
+      </AreaChart>
+    </div>
+  );
+}
+
+function LeadChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="chart-tooltip">
+      <strong>{label}</strong>
+      <span>{payload[0].value} lead</span>
     </div>
   );
 }
@@ -1400,17 +1436,24 @@ function buildLeadChart(leads) {
   }));
 }
 
-function linePoints(data, max) {
-  return data.map((item, index) => {
-    const x = (index / Math.max(data.length - 1, 1)) * 100;
-    const y = 92 - (item.count / max) * 76;
-    return `${x},${y}`;
-  }).join(' ');
+function dedupeMessagesForDisplay(messages) {
+  const visible = [];
+
+  for (const message of messages || []) {
+    const previous = visible[visible.length - 1];
+    const sameConversation = previous?.phone === message.phone;
+    const sameBody = normalizeMessageBody(previous?.body) === normalizeMessageBody(message.body);
+    const closeTime = Math.abs(new Date(message.created_at).getTime() - new Date(previous?.created_at).getTime()) <= 30000;
+    const botEchoAsOwner = sameConversation && sameBody && closeTime && previous?.from === 'bot' && message.from === 'owner';
+
+    if (!botEchoAsOwner) visible.push(message);
+  }
+
+  return visible;
 }
 
-function areaPath(data, max) {
-  const points = linePoints(data, max).split(' ');
-  return `M ${points[0] || '0,92'} L ${points.slice(1).join(' L ')} L 100,100 L 0,100 Z`;
+function normalizeMessageBody(body) {
+  return String(body || '').replace(/\s+/g, ' ').trim();
 }
 
 function sortPhonesByConversation(conversations) {

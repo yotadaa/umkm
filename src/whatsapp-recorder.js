@@ -41,8 +41,11 @@ export async function recordOutgoingWhatsAppMessage({ store, message }) {
   const phone = await resolveOutgoingWhatsAppPhone(message);
   if (!phone) return { skipped: true, reason: 'missing-phone' };
 
-  const duplicate = store.hasRecentMessage?.({ phone, from: 'owner', body, withinMs: DEDUPE_WINDOW_MS });
-  if (duplicate) return { phone, duplicate: true };
+  const duplicateOwner = store.hasRecentMessage?.({ phone, from: 'owner', body, withinMs: DEDUPE_WINDOW_MS });
+  if (duplicateOwner) return { phone, duplicate: true, duplicateOf: 'owner' };
+
+  const duplicateBot = store.hasRecentMessage?.({ phone, from: 'bot', body, withinMs: DEDUPE_WINDOW_MS });
+  if (duplicateBot) return { phone, duplicate: true, duplicateOf: 'bot' };
 
   await store.addMessage({ phone, from: 'owner', body, dedupeWindowMs: DEDUPE_WINDOW_MS });
   return { phone, duplicate: false };

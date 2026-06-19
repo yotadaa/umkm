@@ -59,7 +59,7 @@ async function buildResponse({ store, phone, text, conversation }) {
 
     if (isMediaRequest(lowerText)) {
       return product.media?.length
-        ? `Bisa Kak. Saya siapkan ${product.media.length} foto ${product.name}. Admin bisa share foto-fotonya dari dashboard ya.`
+        ? `Bisa Kak. Saya kirim ${product.media.length} foto ${product.name} sekarang ya.`
         : `Bisa Kak, untuk ${product.name} saya bantu minta admin kirim foto terbaru ya.`;
     }
 
@@ -103,10 +103,10 @@ async function buildResponse({ store, phone, text, conversation }) {
   }
 
   if (isMediaRequest(lowerText)) {
-    const interestedProduct = products.find((item) => item.name === conversation.interest);
+    const interestedProduct = resolveMediaRequestProduct({ store, phone, text, conversation });
     if (interestedProduct?.media?.length) {
       await store.updateConversation(phone, { source, status });
-      return `Bisa Kak. Saya siapkan ${interestedProduct.media.length} foto ${interestedProduct.name}. Admin bisa share foto-fotonya dari dashboard ya.`;
+      return `Bisa Kak. Saya kirim ${interestedProduct.media.length} foto ${interestedProduct.name} sekarang ya.`;
     }
 
     await store.updateConversation(phone, { source, status });
@@ -238,7 +238,19 @@ function containsAny(text, keywords) {
   return keywords.some((keyword) => text.includes(keyword));
 }
 
-function isMediaRequest(text) {
+export function resolveMediaRequestProduct({ store, phone, text, conversation }) {
+  const lowerText = String(text || '').toLowerCase();
+  if (!isMediaRequest(lowerText)) return null;
+
+  const products = store.getProducts();
+  const currentConversation = conversation || store.getConversation(phone);
+
+  return findProduct(lowerText, products)
+    || products.find((item) => item.name === currentConversation.interest)
+    || null;
+}
+
+export function isMediaRequest(text) {
   return containsAny(text, mediaKeywords);
 }
 

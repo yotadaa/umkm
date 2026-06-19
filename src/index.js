@@ -1,14 +1,15 @@
 import whatsappWeb from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
 import QRCode from 'qrcode';
-import { handleIncomingMessage } from './chatbot.js';
 import { startOwnerCli } from './owner-cli.js';
 import { startAutoFollowUpScheduler } from './followup.js';
 import { startDashboardServer } from './dashboard-server.js';
 import { createAppStore } from './store-factory.js';
 import { createWhatsAppSessionTracker } from './whatsapp-session.js';
-import { recordOutgoingWhatsAppMessage, resolveIncomingWhatsAppPhone } from './whatsapp-recorder.js';
+import { recordOutgoingWhatsAppMessage } from './whatsapp-recorder.js';
 import { sendWhatsAppReply } from './whatsapp-replier.js';
+import { handleIncomingWhatsAppMessage } from './whatsapp-handler.js';
+import { initializeWhatsAppClient } from './whatsapp-startup.js';
 
 const { Client, LocalAuth } = whatsappWeb;
 
@@ -79,20 +80,17 @@ client.on('message', async (message) => {
   if (message.fromMe || message.from.includes('@g.us')) return;
 
   try {
-    const phone = await resolveIncomingWhatsAppPhone(message);
-    console.log(`Pesan masuk WhatsApp dari ${phone}: ${String(message.body || '').slice(0, 120)}`);
-    const response = await handleIncomingMessage({ store, message, phone });
-    if (response) {
-      const sent = await sendWhatsAppReply({ client, message, phone, body: response });
-      console.log(`Balasan bot terkirim ke ${phone} via ${sent.method}.`);
-    }
+    const result = await handleIncomingWhatsAppMessage({ store, client, message });
+    console.log(`Pesan masuk WhatsApp dari ${result.phone}: ${String(message.body || '').slice(0, 120)}`);
+    if (result.reply) console.log(`Balasan bot terkirim ke ${result.phone} via ${result.reply.method}.`);
+    if (result.mediaSent?.length) console.log(`${result.mediaSent.length} foto produk terkirim ke ${result.phone}.`);
   } catch (error) {
     console.error('Gagal memproses pesan:', error.message);
     try {
       await sendWhatsAppReply({
         client,
         message,
-        phone: await resolveIncomingWhatsAppPhone(message),
+        phone: message.from,
         body: 'Maaf Kak, sistem sedang cek sebentar. Admin akan bantu lanjutkan ya.'
       });
     } catch (replyError) {
@@ -114,7 +112,6 @@ client.on('disconnected', (reason) => {
   console.log('WhatsApp terputus:', reason);
 });
 
-client.initialize().catch((error) => {
-  whatsappSession.markError(error);
-  console.error('Gagal menginisialisasi WhatsApp:', error?.stack || error);
+initializeWhatsAppClient({ client, whatsappSession }).then((result) => {
+  if (!result.ok) console.error('WhatsApp tidak siap. Dashboard tetap aktif untuk cek QR/status.');
 });

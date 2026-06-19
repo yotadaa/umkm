@@ -16,3 +16,4 @@ data/db.json
 data/*.json
 dashboard/dist/
 runtime-debug*.log
+vite-debug*.log

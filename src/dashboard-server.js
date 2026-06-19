@@ -1,11 +1,9 @@
 import express from 'express';
-import whatsappWeb from 'whatsapp-web.js';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { dueFollowUps, sendFollowUps } from './followup.js';
 import { normalizePhone } from './chatbot.js';
-
-const { MessageMedia } = whatsappWeb;
+import { sendProductMedia, sendWhatsAppMessage } from './whatsapp-sender.js';
 
 export function createDashboardApp({ store, client, whatsappSession }) {
   const app = express();
@@ -84,14 +82,7 @@ export function createDashboardApp({ store, client, whatsappSession }) {
     if (!product) return res.status(404).json({ error: 'Product not found' });
     if (!product.media?.length) return res.status(404).json({ error: 'Produk belum memiliki media' });
 
-    const sent = [];
-    for (const media of product.media) {
-      const messageMedia = await createMessageMedia(media, product, { downloadRemote: Boolean(client?.pupPage) });
-      const caption = `${product.name} - ${media.label}`;
-      await client.sendMessage(`${phone}@c.us`, messageMedia || media.url, messageMedia ? { caption } : undefined);
-      await store.addMessage({ phone, from: 'owner', body: `[Foto] ${caption}` });
-      sent.push({ id: media.id, label: media.label });
-    }
+    const sent = await sendProductMedia({ client, store, phone, product, from: 'owner' });
 
     res.json({ ok: true, sent });
   });
@@ -127,9 +118,9 @@ export function createDashboardApp({ store, client, whatsappSession }) {
     if (!phone) return res.status(400).json({ error: 'Phone is required' });
     if (!isWhatsAppReady(client)) return res.status(409).json({ error: 'WhatsApp belum terhubung' });
 
-    await client.sendMessage(`${phone}@c.us`, body);
+    const delivery = await sendWhatsAppMessage({ client, phone, body });
     await store.addMessage({ phone, from: 'owner', body, dedupeWindowMs: 15000 });
-    res.json({ ok: true });
+    res.json({ ok: true, ...delivery });
   });
 
   app.get('/api/followups/due', (req, res) => {
@@ -163,7 +154,7 @@ export function createDashboardApp({ store, client, whatsappSession }) {
 
     const sent = [];
     for (const lead of leads) {
-      await client.sendMessage(`${lead.phone}@c.us`, `Halo Kak ${lead.name || ''}, ${message}`.trim());
+      await sendWhatsAppMessage({ client, phone: lead.phone, body: `Halo Kak ${lead.name || ''}, ${message}`.trim() });
       await store.addMessage({ phone: lead.phone, from: 'owner', body: message });
       sent.push({ leadId: lead.id, phone: lead.phone });
     }
@@ -209,19 +200,6 @@ function publicState(store, whatsappSession) {
 
 function isWhatsAppReady(client) {
   return Boolean(client?.info);
-}
-
-function createMessageMedia(media, product, { downloadRemote = true } = {}) {
-  const match = String(media.url || '').match(/^data:([^;]+);base64,(.+)$/);
-  if (!match) {
-    if (!downloadRemote) return null;
-    return MessageMedia.fromUrl(media.url, { unsafeMime: true }).catch(() => null);
-  }
-
-  const [, mimeType, data] = match;
-  const extension = mimeType.includes('svg') ? 'svg' : mimeType.split('/')[1] || 'png';
-  const filename = `${product.id}-${media.id}.${extension}`;
-  return new MessageMedia(mimeType, data, filename);
 }
 
 function validateProductInput(input, { partial = false } = {}) {

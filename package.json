@@ -11,7 +11,7 @@
     "dashboard:dev": "vite --host 0.0.0.0 --config dashboard/vite.config.js",
     "dashboard:build": "vite build --config dashboard/vite.config.js",
     "test": "node --test",
-    "check": "node --check src/index.js && node --check src/chatbot.js && node --check src/store.js && node --check src/products.js && node --check src/ai.js && node --check src/followup.js && node --check src/owner-cli.js && node --check src/dashboard-server.js && node --check src/whatsapp-session.js && node --check src/whatsapp-recorder.js && node --check src/whatsapp-replier.js && node --check src/mysql-config.js && node --check src/mysql-store.js && node --check src/store-factory.js && node --check src/db-migrate.js && node --check src/db-seed.js && npm test && npm run dashboard:build"
+    "check": "node --check src/index.js && node --check src/chatbot.js && node --check src/store.js && node --check src/products.js && node --check src/ai.js && node --check src/followup.js && node --check src/owner-cli.js && node --check src/dashboard-server.js && node --check src/whatsapp-session.js && node --check src/whatsapp-recorder.js && node --check src/whatsapp-replier.js && node --check src/whatsapp-sender.js && node --check src/whatsapp-handler.js && node --check src/whatsapp-startup.js && node --check src/mysql-config.js && node --check src/mysql-store.js && node --check src/store-factory.js && node --check src/db-migrate.js && node --check src/db-seed.js && npm test && npm run dashboard:build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^6.0.2",
@@ -22,6 +22,7 @@
     "qrcode-terminal": "^0.12.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "recharts": "^3.8.1",
     "vite": "^8.0.16",
     "whatsapp-web.js": "^1.26.0"
   },

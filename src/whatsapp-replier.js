@@ -1,4 +1,5 @@
 import { normalizePhone } from './chatbot.js';
+import { sendWhatsAppMessage } from './whatsapp-sender.js';
 
 export async function sendWhatsAppReply({ client, message, phone, body }) {
   const text = String(body || '').trim();
@@ -9,11 +10,10 @@ export async function sendWhatsAppReply({ client, message, phone, body }) {
     return { method: 'reply' };
   } catch (error) {
     const normalizedPhone = normalizePhone(phone || message?.from || message?.to);
-    if (!normalizedPhone || !client?.sendMessage) throw error;
-
-    await client.sendMessage(`${normalizedPhone}@c.us`, text);
+    const delivery = await sendWhatsAppMessage({ client, phone: normalizedPhone, body: text });
     return {
-      method: 'sendMessage',
+      method: delivery.method === 'direct' ? 'sendMessage' : delivery.method,
+      to: delivery.to,
       fallbackReason: error?.message || String(error)
     };
   }

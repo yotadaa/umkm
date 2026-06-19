@@ -107,6 +107,11 @@ export function formatCurrency(value) {
 
 export function findProduct(text, productList = defaultProducts) {
   const normalized = text.toLowerCase();
+  const numberedMatch = normalized.match(/(?:nomor|no\.?|produk|treatment|pilihan|#)\s*(\d{1,2})\b/);
+  if (numberedMatch) {
+    const product = productList[Number(numberedMatch[1]) - 1];
+    if (product) return product;
+  }
 
   return productList.find((product) =>
     ensureArray(product.keywords).some((keyword) => normalized.includes(String(keyword).toLowerCase()))

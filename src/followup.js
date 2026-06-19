@@ -1,3 +1,5 @@
+import { sendWhatsAppMessage } from './whatsapp-sender.js';
+
 const followUpRules = [
   { key: 'h1', afterDays: 1 },
   { key: 'h3', afterDays: 3 },
@@ -11,7 +13,7 @@ export async function sendFollowUps({ client, store, leads, day, reason = 'manua
     if (!canFollowUp(lead, day)) continue;
 
     const message = followUpMessage(lead, day);
-    await client.sendMessage(`${lead.phone}@c.us`, message);
+    await sendWhatsAppMessage({ client, phone: lead.phone, body: message });
     await store.markFollowUp(lead.phone, day);
     sent.push({ lead, day, reason });
   }

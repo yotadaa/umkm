@@ -159,6 +159,71 @@ test('dashboard API supports product CRUD, lead status, follow-up, broadcast, an
   }
 });
 
+test('dashboard chat send retries via WhatsApp number id when direct send has no LID', async () => {
+  const sentMessages = [];
+  const { app, cleanup } = await createTestApp({
+    client: {
+      info: { pushname: 'QA Bot', wid: { user: '628000000001' } },
+      sendMessage: async (to, body) => {
+        if (to === '628111222333@c.us') throw new Error('No LID for user');
+        sentMessages.push({ to, body });
+      },
+      getNumberId: async (phone) => ({ _serialized: `${phone}@lid` })
+    }
+  });
+
+  try {
+    const server = app.listen(0);
+    try {
+      const reply = await postJson(server, '/api/chats/628111222333/send', { message: 'Siap Kak, admin bantu.' });
+
+      assert.equal(reply.ok, true);
+      assert.equal(reply.method, 'number-id');
+      assert.deepEqual(sentMessages, [{ to: '628111222333@lid', body: 'Siap Kak, admin bantu.' }]);
+    } finally {
+      await closeServer(server);
+    }
+  } finally {
+    await cleanup();
+  }
+});
+
+test('incoming WhatsApp media request sends product photos automatically', async () => {
+  const sent = [];
+  const { store, cleanup } = await createTestApp();
+  const product = store.getProduct('facial-acne');
+
+  try {
+    const { handleIncomingWhatsAppMessage } = await import('./whatsapp-handler.js');
+    const result = await handleIncomingWhatsAppMessage({
+      store,
+      client: {
+        info: { wid: { user: '628000000001' } },
+        sendMessage: async (to, content, options = {}) => {
+          sent.push({ to, content, options });
+        }
+      },
+      message: {
+        from: '628111222333@c.us',
+        body: 'boleh kirim foto facial acne?'
+      }
+    });
+
+    assert.equal(result.phone, '628111222333');
+    assert.equal(result.mediaSent.length, product.media.length);
+    assert.equal(sent.length, product.media.length + 1);
+    assert.equal(sent[0].to, '628111222333@c.us');
+    assert.match(sent[0].content, /kirim 3 foto Facial Acne/i);
+    assert.ok(sent[1].content || sent[1].options.media);
+
+    const messages = store.data.messages.filter((message) => message.phone === '628111222333');
+    assert.equal(messages.some((message) => message.from === 'bot' && message.body.includes('Admin bisa share')), false);
+    assert.equal(messages.filter((message) => message.from === 'bot' && message.body.startsWith('[Foto]')).length, product.media.length);
+  } finally {
+    await cleanup();
+  }
+});
+
 test('catalog media can be seeded, requested from WhatsApp chat, and shared from dashboard', async () => {
   const sentMessages = [];
   const { app, store, cleanup } = await createTestApp({
@@ -187,7 +252,7 @@ test('catalog media can be seeded, requested from WhatsApp chat, and shared from
     });
 
     assert.match(reply, /foto Facial Acne/i);
-    assert.match(reply, /admin/i);
+    assert.match(reply, /kirim 3 foto Facial Acne/i);
 
     const server = app.listen(0);
     try {

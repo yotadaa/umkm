@@ -1,6 +1,7 @@
 import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { dueFollowUps, sendFollowUps } from './followup.js';
+import { sendWhatsAppMessage } from './whatsapp-sender.js';
 
 export function startOwnerCli({ client, store }) {
   const rl = readline.createInterface({ input, output });
@@ -124,7 +125,7 @@ async function handleBroadcast({ command, client, store }) {
   }
 
   for (const lead of store.data.leads) {
-    await client.sendMessage(`${lead.phone}@c.us`, `Halo Kak ${lead.name}, ${message}`);
+    await sendWhatsAppMessage({ client, phone: lead.phone, body: `Halo Kak ${lead.name}, ${message}` });
     console.log(`Broadcast terkirim ke ${lead.name} (${lead.phone}).`);
   }
 }
