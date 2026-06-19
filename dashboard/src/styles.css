@@ -218,11 +218,11 @@ p {
   align-items: center;
   gap: 16px;
   padding: 0 24px;
-  background: rgba(239, 244, 255, 0.44);
+  background: rgba(239, 244, 255, 0.64);
   border-bottom: 1px solid rgba(255, 255, 255, 0.58);
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03);
-  backdrop-filter: blur(40px) saturate(160%);
-  -webkit-backdrop-filter: blur(40px) saturate(160%);
+  backdrop-filter: blur(54px) saturate(175%);
+  -webkit-backdrop-filter: blur(54px) saturate(175%);
 }
 
 .topbar-title {
@@ -244,7 +244,7 @@ p {
   padding: 0 12px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.68);
-  background: rgba(255, 255, 255, 0.48);
+  background: rgba(255, 255, 255, 0.62);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.035);
 }
 
@@ -289,8 +289,8 @@ p {
   font-weight: 800;
   white-space: nowrap;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
 }
 
 .wa-pill span {
@@ -339,18 +339,18 @@ p {
   padding: 0 14px;
   border: 1px solid rgba(255, 255, 255, 0.7);
   color: #2a49df;
-  background: rgba(255, 255, 255, 0.48);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
 }
 
 .icon-btn {
   width: 40px;
   height: 40px;
   color: #444655;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(14px) saturate(150%);
-  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(24px) saturate(165%);
+  -webkit-backdrop-filter: blur(24px) saturate(165%);
 }
 
 .icon-btn:hover,
@@ -371,8 +371,8 @@ p {
   border: 2px solid #fff;
   background: linear-gradient(135deg, #dee0ff, #e9ddff);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-  backdrop-filter: blur(18px) saturate(155%);
-  -webkit-backdrop-filter: blur(18px) saturate(155%);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
 }
 
 .primary-btn,
@@ -589,12 +589,12 @@ p {
   gap: 12px;
   padding: 13px 15px;
   border-radius: 16px;
-  background: rgba(240, 245, 255, 0.72);
+  background: rgba(240, 245, 255, 0.84);
   color: #2a49df;
   border: 1px solid rgba(73, 101, 249, 0.18);
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.07);
-  backdrop-filter: blur(24px) saturate(165%);
-  -webkit-backdrop-filter: blur(24px) saturate(165%);
+  backdrop-filter: blur(34px) saturate(175%);
+  -webkit-backdrop-filter: blur(34px) saturate(175%);
   font-weight: 700;
 }
 
@@ -1137,11 +1137,11 @@ p {
   place-items: center;
   border-radius: 999px;
   color: #0b1c30;
-  background: rgba(255, 255, 255, 0.74);
+  background: rgba(255, 255, 255, 0.84);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
   transform: translateY(-50%);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(30px) saturate(175%);
+  -webkit-backdrop-filter: blur(30px) saturate(175%);
 }
 
 .carousel-nav.prev {
@@ -1160,11 +1160,11 @@ p {
   padding: 7px 10px;
   border-radius: 999px;
   color: #fff;
-  background: rgba(11, 28, 48, 0.56);
+  background: rgba(11, 28, 48, 0.66);
   font-size: 12px;
   font-weight: 800;
-  backdrop-filter: blur(14px) saturate(145%);
-  -webkit-backdrop-filter: blur(14px) saturate(145%);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
 }
 
 .carousel-thumbs {
@@ -1974,10 +1974,10 @@ tr:hover td {
     display: flex;
     z-index: 80;
     width: min(286px, 82vw);
-    background: rgba(248, 250, 255, 0.8);
-    box-shadow: 26px 0 70px rgba(15, 23, 42, 0.18);
-    backdrop-filter: blur(34px) saturate(170%);
-    -webkit-backdrop-filter: blur(34px) saturate(170%);
+    background: rgba(248, 250, 255, 0.92);
+    box-shadow: 34px 0 96px rgba(15, 23, 42, 0.24);
+    backdrop-filter: blur(58px) saturate(190%);
+    -webkit-backdrop-filter: blur(58px) saturate(190%);
   }
 
   .nav-backdrop {
@@ -1985,9 +1985,9 @@ tr:hover td {
     position: fixed;
     inset: 0;
     z-index: 70;
-    background: rgba(15, 23, 42, 0.28);
-    backdrop-filter: blur(16px) saturate(130%);
-    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    background: rgba(12, 18, 32, 0.44);
+    backdrop-filter: blur(36px) saturate(155%);
+    -webkit-backdrop-filter: blur(36px) saturate(155%);
   }
 
   .main-shell {
@@ -2052,10 +2052,10 @@ tr:hover td {
     padding: 8px;
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.72);
-    background: rgba(255, 255, 255, 0.74);
-    box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.08);
-    backdrop-filter: blur(36px) saturate(165%);
-    -webkit-backdrop-filter: blur(36px) saturate(165%);
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: 0 -14px 48px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(48px) saturate(180%);
+    -webkit-backdrop-filter: blur(48px) saturate(180%);
   }
 
   .mobile-nav button {
