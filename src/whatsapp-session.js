@@ -18,6 +18,9 @@ export function createWhatsAppSessionTracker({
     disconnectedAt: null,
     lastDisconnectReason: null,
     lastError: null,
+    loadingPercent: null,
+    loadingMessage: null,
+    lastState: null,
     accountName: null,
     phone: null,
     updatedAt: now()
@@ -31,6 +34,20 @@ export function createWhatsAppSessionTracker({
   }
 
   return {
+    markLoading(percent, message) {
+      update({
+        status: 'loading',
+        connected: false,
+        loadingPercent: Number.isFinite(Number(percent)) ? Number(percent) : null,
+        loadingMessage: String(message || 'WhatsApp'),
+        lastError: null
+      });
+    },
+    markState(nextState) {
+      update({
+        lastState: String(nextState || 'unknown')
+      });
+    },
     markQr(rawQr, { qrImage = null } = {}) {
       update({
         status: 'qr',
@@ -38,7 +55,9 @@ export function createWhatsAppSessionTracker({
         qrAvailable: true,
         qrImage,
         qrReceivedAt: now(),
-        lastError: null
+        lastError: null,
+        loadingPercent: null,
+        loadingMessage: null
       });
     },
     markAuthenticated() {
@@ -47,7 +66,9 @@ export function createWhatsAppSessionTracker({
         qrAvailable: false,
         qrImage: null,
         authenticatedAt: now(),
-        lastError: null
+        lastError: null,
+        loadingPercent: null,
+        loadingMessage: null
       });
     },
     markReady(info = {}) {
@@ -59,6 +80,8 @@ export function createWhatsAppSessionTracker({
         readyAt: now(),
         lastDisconnectReason: null,
         lastError: null,
+        loadingPercent: null,
+        loadingMessage: null,
         accountName: info.pushname || info.me?.pushname || null,
         phone: info.wid?.user || info.me?.user || null
       });
@@ -69,7 +92,9 @@ export function createWhatsAppSessionTracker({
         connected: false,
         qrAvailable: false,
         qrImage: null,
-        lastError: String(message || 'Authentication failed')
+        lastError: String(message || 'Authentication failed'),
+        loadingPercent: null,
+        loadingMessage: null
       });
     },
     markDisconnected(reason) {
@@ -79,7 +104,20 @@ export function createWhatsAppSessionTracker({
         qrAvailable: false,
         qrImage: null,
         disconnectedAt: now(),
-        lastDisconnectReason: String(reason || 'Unknown')
+        lastDisconnectReason: String(reason || 'Unknown'),
+        loadingPercent: null,
+        loadingMessage: null
+      });
+    },
+    markError(error) {
+      update({
+        status: 'error',
+        connected: false,
+        qrAvailable: false,
+        qrImage: null,
+        lastError: error?.message || String(error || 'Unknown WhatsApp initialization error'),
+        loadingPercent: null,
+        loadingMessage: null
       });
     },
     snapshot() {

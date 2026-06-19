@@ -32,3 +32,25 @@ test('tracks WhatsApp session lifecycle without exposing the raw QR payload', ()
   assert.equal(tracker.snapshot().connected, false);
   assert.equal(tracker.snapshot().lastDisconnectReason, 'LOGOUT');
 });
+
+test('tracks WhatsApp loading progress and initialization errors', () => {
+  const tracker = createWhatsAppSessionTracker({
+    sessionPath: '.wa-session',
+    hasLocalSession: () => true,
+    now: () => '2026-06-19T10:50:00.000Z'
+  });
+
+  tracker.markLoading(74, 'Membuka WhatsApp Web');
+  assert.equal(tracker.snapshot().status, 'loading');
+  assert.equal(tracker.snapshot().connected, false);
+  assert.equal(tracker.snapshot().loadingPercent, 74);
+  assert.equal(tracker.snapshot().loadingMessage, 'Membuka WhatsApp Web');
+
+  tracker.markState('PAIRING');
+  assert.equal(tracker.snapshot().lastState, 'PAIRING');
+
+  tracker.markError(new Error('auth timeout'));
+  assert.equal(tracker.snapshot().status, 'error');
+  assert.equal(tracker.snapshot().connected, false);
+  assert.match(tracker.snapshot().lastError, /auth timeout/);
+});

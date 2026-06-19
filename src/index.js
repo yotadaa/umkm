@@ -8,6 +8,7 @@ import { startDashboardServer } from './dashboard-server.js';
 import { createAppStore } from './store-factory.js';
 import { createWhatsAppSessionTracker } from './whatsapp-session.js';
 import { recordOutgoingWhatsAppMessage, resolveIncomingWhatsAppPhone } from './whatsapp-recorder.js';
+import { sendWhatsAppReply } from './whatsapp-replier.js';
 
 const { Client, LocalAuth } = whatsappWeb;
 
@@ -17,9 +18,12 @@ await store.load();
 const whatsappSession = createWhatsAppSessionTracker({ sessionPath: process.env.WA_SESSION_PATH || './.wa-session' });
 const client = new Client({
   authStrategy: new LocalAuth({ dataPath: whatsappSession.snapshot().sessionPath }),
+  authTimeoutMs: Number(process.env.WA_AUTH_TIMEOUT_MS || 60000),
+  takeoverOnConflict: true,
+  takeoverTimeoutMs: 0,
   puppeteer: {
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
   }
 });
 
@@ -48,6 +52,16 @@ client.on('auth_failure', (message) => {
   console.error('Autentikasi WhatsApp gagal:', message);
 });
 
+client.on('loading_screen', (percent, message) => {
+  whatsappSession.markLoading(percent, message);
+  console.log(`WhatsApp loading ${percent}%: ${message}`);
+});
+
+client.on('change_state', (state) => {
+  whatsappSession.markState(state);
+  console.log('WhatsApp state:', state);
+});
+
 let ownerRuntimeStarted = false;
 
 client.on('ready', () => {
@@ -66,11 +80,24 @@ client.on('message', async (message) => {
 
   try {
     const phone = await resolveIncomingWhatsAppPhone(message);
+    console.log(`Pesan masuk WhatsApp dari ${phone}: ${String(message.body || '').slice(0, 120)}`);
     const response = await handleIncomingMessage({ store, message, phone });
-    if (response) await message.reply(response);
+    if (response) {
+      const sent = await sendWhatsAppReply({ client, message, phone, body: response });
+      console.log(`Balasan bot terkirim ke ${phone} via ${sent.method}.`);
+    }
   } catch (error) {
     console.error('Gagal memproses pesan:', error.message);
-    await message.reply('Maaf Kak, sistem sedang cek sebentar. Admin akan bantu lanjutkan ya.');
+    try {
+      await sendWhatsAppReply({
+        client,
+        message,
+        phone: await resolveIncomingWhatsAppPhone(message),
+        body: 'Maaf Kak, sistem sedang cek sebentar. Admin akan bantu lanjutkan ya.'
+      });
+    } catch (replyError) {
+      console.error('Gagal mengirim pesan fallback:', replyError.message);
+    }
   }
 });
 
@@ -87,4 +114,7 @@ client.on('disconnected', (reason) => {
   console.log('WhatsApp terputus:', reason);
 });
 
-client.initialize();
+client.initialize().catch((error) => {
+  whatsappSession.markError(error);
+  console.error('Gagal menginisialisasi WhatsApp:', error?.stack || error);
+});
